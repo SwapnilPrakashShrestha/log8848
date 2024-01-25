@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log8848</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Include Chart.js -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Log8848</h1>
+        <form method="POST" enctype="multipart/form-data">
+            <div class="file-drop-box">
+                <p>Drag and drop your log file here or</p>
+                <input type="file" name="log_file" accept=".log" id="log-file-input" style="display: none;">
+                <label for="log-file-input" class="file-input-label">Click to choose a file</label>
+            </div>
+            <button type="submit" class="upload-button">Upload and Analyze</button>
+            {% if error %}
+            <p style="color: red;">{{ error }}</p>
+            {% endif %}
+            <!-- Add a span element to display the selected file name -->
+            <span id="selected-file-name"></span>
+        </form>
+
+        {% if df is defined %}
+        <h2>Log Analysis of the file</h2>
+
+        <h3>Security Issues</h3>
+        <ul>
+            {% for issue, count in security_issues.items() %}
+            <li>{{ issue }}: {{ count }}</li>
+            {% endfor %}
+        </ul>
+
+        <h3>IP Addresses Increasing Security Issues</h3>
+        {% if ip_security_counts %}
+        <table class="result-table">
+            <tr>
+                <th>IP Address</th>
+                <th>SQL Injection</th>
+                <th>Cross-Site Scripting (XSS)</th>
+                <th>Port Scan</th>
+            </tr>
+            {% for ip, counts in ip_security_counts.items() %}
+            <tr>
+                <td>{{ ip }}</td>
+                <td>{{ counts.get("SQL Injection", 0) }}</td>
+                <td>{{ counts.get("Cross-Site Scripting (XSS)", 0) }}</td>
+                <td>{{ counts.get("Port Scan", 0) }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>No security issues found for IP Addresses.</p>
+        {% endif %}
+
+        <!-- Add a canvas element for the bar chart -->
+        <canvas id="security-issues-bar-chart" data-issue-names="{{ issue_names }}" data-issue-counts="{{ issue_counts }}"></canvas>
+
+        <h3>IP Address Information</h3>
+        <table class="result-table">
+            <tr>
+                <th>IP Address</th>
+                <th>Success</th>
+                <th>Failed</th>
+            </tr>
+            {% for index, row in df.iterrows() %}
+            <tr>
+                <td>{{ row['IP Address'] }}</td>
+                <td>{{ row['Success'] }}</td>
+                <td>{{ row['Failed'] }}</td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td><strong>Total</strong></td>
+                <td><strong>{{ df['Success'].sum() }}</strong></td>
+                <td><strong>{{ df['Failed'].sum() }}</strong></td>
+            </tr>
+        </table>
+        {% endif %}
+    </div>
+</body>
+</html>
